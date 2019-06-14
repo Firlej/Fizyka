@@ -24,6 +24,7 @@ let fps = 0;
 
 let drawLines = false;
 
+// FUNKCJA WYWOŁANA PO ZAŁADOWANIU STRONY
 function setup(callback) {
 	resizeCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight));
 
@@ -48,6 +49,7 @@ function setup(callback) {
 		}
 	}
 
+	// INICJALIZACJA N ATOMÓW
 	for (let i = 0; i < N; i++) {
 		let atom = new Atom();
 		atoms.push(atom);
@@ -56,14 +58,17 @@ function setup(callback) {
 	callback();
 }
 
+// FUNKCJA WYWOŁYWANA 60 RAZY NA SEKUNDĘ
 function draw() {
 	background(rgb(155, 155, 155));
 
+	// UPDATE POZYCJI KAZDEGO Z ATOMOW ORAZ RYSOWANIE ICH
 	for (let i = 0; i < atoms.length; i++) {
 		atoms[i].update();
 		atoms[i].draw();
 	}
 
+	// OBLICZANIE KOLIZJI DLA KAZDEJ PARY ATMÓW
 	for (let i = 0; i < atoms.length; i++) {
 		const a = atoms[i];
 		for (let j = i + 1; j < atoms.length; j++) {
@@ -77,9 +82,10 @@ function draw() {
 		}
 	}
 
+	// OBLICZANIE ENTROPII
 	calcEntropy();
 
-	// Entropy chart
+	// RYSOWANIE WYKRESU ENTROPII
 	let len = entropy_values.length;
 	stroke("lime");
 	beginShape();
@@ -91,7 +97,7 @@ function draw() {
 	vertex(width, height);
 	endShape();
 
-	// FPS counter
+	// INFORMACJE W PRAWYM GORNYM ROGU
 	textAlign("right");
 	fill("blue");
 	font("40px Arial");
@@ -100,16 +106,19 @@ function draw() {
 	text("R: " + R, width - 20, 120);
 	text("W: " + W, width - 20, 160);
 
+	// LICZNIK KLATEK NA SEKUNDĘ
 	fps++;
 	setTimeout(function () {
 		fps--;
 	}, 1000);
 }
 
+// WÁCZANIE I WYLACZANIE RYSOWNAIA WEKTOROW PREDKOSCI
 function mousePressed() {
 	drawLines = !drawLines;
 }
 
+// OBLICZANIE ENTROPII
 function calcEntropy() {
 
 	if (frameCount < 0) {
@@ -140,7 +149,7 @@ function calcEntropy() {
 		try {
 			entropy[pxe][pye][vxe][vye]++;
 		} catch (error) {
-			console.error(a, pxe, pye, vxe, vye, error);
+			// console.error(a, pxe, pye, vxe, vye, error);
 		}
 	}
 
