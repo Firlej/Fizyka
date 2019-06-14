@@ -5,8 +5,8 @@ class Atom {
         this.pos = vec(-R, random(-R, R));
         // this.pos = vec(random(-R, R), random(-R, R));
         this.vel = vec(random(-MAX_VEL, MAX_VEL), random(-MAX_VEL, MAX_VEL));
-        // this.vel.setMag(5);
-        this.collides = false;
+
+        this.collisionLevel = 1;
     }
 
     copy() {
@@ -17,42 +17,49 @@ class Atom {
         return a;
     }
 
+    walls() {
+        if (this.pos.x < -R+this.r) {
+            this.vel.x *= -1;
+            this.pos.x = -R+this.r;
+        } else if (this.pos.x > R-this.r) {
+            this.vel.x *= -1;
+            this.pos.x = R-this.r;
+        } else if (this.pos.y < -R+this.r) {
+            this.vel.y *= -1;
+            this.pos.y = -R+this.r;
+        } else if (this.pos.y > R-this.r) {
+            this.vel.y *= -1;
+            this.pos.y = R-this.r;
+        }
+    }
+
     update() {
         this.pos.add(this.vel);
-
-        if (this.pos.x < -R) {
-            this.vel.x *= -1;
-            this.pos.x = -R;
-        } else if (this.pos.x > R) {
-            this.vel.x *= -1;
-            this.pos.x = R;
-        } else if (this.pos.y < -R) {
-            this.vel.y *= -1;
-            this.pos.y = -R;
-        } else if (this.pos.y > R) {
-            this.vel.y *= -1;
-            this.pos.y = R;
-        }
-        
-        maxcnt = max(maxcnt, abs(this.vel.x));
-        maxcnt = max(maxcnt, abs(this.vel.y));
-
-        // this.vel.mult(0.999);
+        this.walls();
     }
 
     draw() {
-        fill('black');
-        if (this.collides) {
-            fill('red');
-        }
 
         push()
         let x = map(this.pos.x, -R, R, 0, width);
         let y = map(this.pos.y, -R, R, 0, height);
         let r = this.r * scale;
         translate(x, y);
+
+        fill('black');
         ellipse(0, 0, r);
-        // line(0,0,this.vel.x, this.vel.x);
+        fill(rgba(200, 0, 0, this.collisionLevel));
+        this.collisionLevel *= 0.7;
+        ellipse(0, 0, r);
+
+        if (drawLines) {
+            stroke("blue");
+            line(0, 0, this.vel.x * 10, this.vel.y * 10);
+            stroke("red");
+            line(0, 0, this.vel.x * 10, 0);
+            stroke("green");
+            line(0, 0, 0, this.vel.y * 10);
+        }
         pop();
     }
 }
@@ -72,7 +79,7 @@ function staticCollisionResolution(a, b) {
 
 function dynamicCollisionResolution(a, b) {
     if (atomsOverlap(a, b)) {
-        
+
         let normal = a.pos.copy().sub(b.pos).normalize();
         let tangent = vec(-normal.y, normal.x);
 
@@ -87,96 +94,91 @@ function dynamicCollisionResolution(a, b) {
 
         let m1 = dpNormalB;
         let m2 = dpNormalA;
-
-        let bf, af;
         
-        bf = a.vel.mag()+b.vel.mag();
         a.vel = tangent.copy().mult(dpTangentA).add(normal.copy().mult(m1));
         b.vel = tangent.copy().mult(dpTangentB).add(normal.copy().mult(m2));
-        af = a.vel.mag()+b.vel.mag();
 
-        // console.log("red",bf, af, abs(bf-af));
-
-        a.collides = true;
-        b.collides = true;
+        a.collisionLevel = 1;
+        b.collisionLevel = 1;
     }
 }
 
-function lel1(a,b) {
-    if (atomsOverlap(a, b)) {
-        let translation = a.pos.copy().sub(b.pos);
+// function lel1(a, b) {
+//     if (atomsOverlap(a, b)) {
+//         let translation = a.pos.copy().sub(b.pos);
 
-        let distance = translation.mag();
-        let sin, cos;
-        if (abs(translation.x) > abs(translation.y)) {
-            cos = translation.x / distance;
-            sin = sqrt(1 - cos * cos);
+//         let distance = translation.mag();
+//         let sin, cos;
+//         if (abs(translation.x) > abs(translation.y)) {
+//             cos = translation.x / distance;
+//             sin = sqrt(1 - cos * cos);
 
-            if (translation.y < 0)
-                sin = -sin;
-        } else {
-            sin = translation.y / distance;
-            cos = sqrt(1 - sin * sin);
+//             if (translation.y < 0)
+//                 sin = -sin;
+//         } else {
+//             sin = translation.y / distance;
+//             cos = sqrt(1 - sin * sin);
 
-            if (translation.x < 0)
-                cos = -cos;
-        }
+//             if (translation.x < 0)
+//                 cos = -cos;
+//         }
 
-        let velocity = a.vel.copy().sub(b.vel);
-        let v1 = cos * velocity.x + sin * velocity.y;
-        let v2 = sin * velocity.x - cos * velocity.y;
-        
-        // let bf, af;
-        // bf = a.vel.mag()+b.vel.mag();
-        // a.vel.set(b.vel.x + v2 * sin, b.vel.y - v2 * cos);
-        // b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
-        // af = a.vel.mag()+b.vel.mag();
+//         let velocity = a.vel.copy().sub(b.vel);
+//         let v1 = cos * velocity.x + sin * velocity.y;
+//         let v2 = sin * velocity.x - cos * velocity.y;
 
-        let bf, af;
-        bf = a.vel.mag()+b.vel.mag();
-        a.vel.set(a.vel.x - v1 * cos, a.vel.y - v1 * sin);
-        b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
-        af = a.vel.mag()+b.vel.mag();
+//         // let bf, af;
+//         // bf = a.vel.mag()+b.vel.mag();
+//         // a.vel.set(b.vel.x + v2 * sin, b.vel.y - v2 * cos);
+//         // b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
+//         // af = a.vel.mag()+b.vel.mag();
 
-        // console.log("green",bf, af, abs(bf-af));
+//         let bf, af;
+//         bf = a.vel.mag() + b.vel.mag();
+//         a.vel.set(a.vel.x - v1 * cos, a.vel.y - v1 * sin);
+//         b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
+//         af = a.vel.mag() + b.vel.mag();
 
-        a.collides = true;
-        b.collides = true;
-    }
-}
-function lel2(a,b) {
-    if (atomsOverlap(a, b)) {
-        let translation = a.pos.copy().sub(b.pos);
+//         // console.log("green",bf, af, abs(bf-af));
 
-        let distance = translation.mag();
-        let sin, cos;
-        if (abs(translation.x) > abs(translation.y)) {
-            cos = translation.x / distance;
-            sin = sqrt(1 - cos * cos);
+//         a.collisionLevel = 1;
+//         b.collisionLevel = 1;
+//     }
+// }
 
-            if (translation.y < 0)
-                sin = -sin;
-        } else {
-            sin = translation.y / distance;
-            cos = sqrt(1 - sin * sin);
+// function lel2(a, b) {
+//     if (atomsOverlap(a, b)) {
+//         let translation = a.pos.copy().sub(b.pos);
 
-            if (translation.x < 0)
-                cos = -cos;
-        }
+//         let distance = translation.mag();
+//         let sin, cos;
+//         if (abs(translation.x) > abs(translation.y)) {
+//             cos = translation.x / distance;
+//             sin = sqrt(1 - cos * cos);
 
-        let velocity = a.vel.copy().sub(b.vel);
-        let v1 = cos * velocity.x + sin * velocity.y
-        let v2 = sin * velocity.x - cos * velocity.y;
-        
-        let bf, af;
-        bf = a.vel.mag()+b.vel.mag();
-        a.vel.set(b.vel.x + v2 * sin, b.vel.y - v2 * cos);
-        b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
-        af = a.vel.mag()+b.vel.mag();
+//             if (translation.y < 0)
+//                 sin = -sin;
+//         } else {
+//             sin = translation.y / distance;
+//             cos = sqrt(1 - sin * sin);
 
-        // console.log("blue",bf, af, abs(bf-af));
+//             if (translation.x < 0)
+//                 cos = -cos;
+//         }
 
-        a.collides = true;
-        b.collides = true;
-    }
-}
+//         let velocity = a.vel.copy().sub(b.vel);
+//         let v1 = cos * velocity.x + sin * velocity.y
+//         let v2 = sin * velocity.x - cos * velocity.y;
+
+//         let bf, af;
+//         bf = a.vel.mag() + b.vel.mag();
+//         a.vel.set(b.vel.x + v2 * sin, b.vel.y - v2 * cos);
+//         b.vel.set(b.vel.x + v1 * cos, b.vel.y + v1 * sin);
+//         af = a.vel.mag() + b.vel.mag();
+
+//         // console.log("blue",bf, af, abs(bf-af));
+
+//         a.collisionLevel = 1;
+//         b.collisionLevel = 1;
+//     }
+// }

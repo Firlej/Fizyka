@@ -157,11 +157,19 @@ function globalAlpha(a = 1) {
     ctx.globalAlpha = a;
 }
 
+function rgb(r, g, b) {
+    return rgba(r, g, b, 1);
+}
+
 function rgba(r, g, b, a = 1) {
     return "rgba(" + floor(r) + ", " + floor(g) + ", " + floor(b) + ", " + a + ")";
 }
 
-function hsl(h, s, l, a = 1) {
+function hsl(h, s, l) {
+    return hsla(h, s, l, 1);
+}
+
+function hsla(h, s, l, a = 1) {
     return "hsl(" + floor(h) + ", " + floor(s) + "%, " + floor(l) + "%, " + a + ")";
 }
 
@@ -180,8 +188,8 @@ function lerp(start, end, rate) {
 
 // MATH SHORTS
 
-function pow(a,b) {
-    return Math.pow(a,b);
+function pow(a, b) {
+    return Math.pow(a, b);
 }
 
 function sqrt(a) {
@@ -338,7 +346,7 @@ class Vector {
         this.y += v.y;
         return this;
     }
-    
+
     sub(v) {
         this.x -= v.x;
         this.y -= v.y;
@@ -350,7 +358,7 @@ class Vector {
         this.y *= n;
         return this;
     }
-    
+
     div(n) {
         this.x /= n;
         this.y /= n;
@@ -407,11 +415,10 @@ function vec(x = 0, y = 0) {
     return new Vector(x, y);
 }
 
-function distSq(x1,y1,x2,y2) {
-    return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
+function distSq(x1, y1, x2, y2) {
+    return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
 }
 
-function dist(x1,y1,x2,y2) {
-    return Math.sqrt(distSq(x1,y1,x2,y2));
+function dist(x1, y1, x2, y2) {
+    return Math.sqrt(distSq(x1, y1, x2, y2));
 }
-
